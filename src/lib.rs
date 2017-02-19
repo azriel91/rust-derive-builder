@@ -379,10 +379,18 @@ fn builder_for_struct(ast: syn::MacroInput) -> quote::Tokens {
             SetterPattern::Mutable => quote!(&self),
             SetterPattern::Immutable => quote!(&self),
         };
+        let initializers_ref = &initializers;
         quote!(
+            #[cfg(not(no_std))]
             #builder_vis fn build(#ref_self) -> ::std::result::Result<#struct_name #ty_generics, ::std::string::String> {
                 Ok(#struct_name {
-                    #(#initializers)*
+                    #(#initializers_ref)*
+                })
+            }
+            #[cfg(no_std)]
+            #builder_vis fn build(#ref_self) -> ::core::result::Result<#struct_name #ty_generics, ::collections::string::String> {
+                Ok(#struct_name {
+                    #(#initializers_ref)*
                 })
             }
         )
